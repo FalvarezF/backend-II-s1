@@ -49,6 +49,13 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+	<!-- Dependencia para iniciar .env y cargar variables de entorno en Spring Boot -->
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>dotenv-java</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
 	<!-- Dependencia para construir aplicaciones web incluyendo Spring MVC-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
