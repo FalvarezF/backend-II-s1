@@ -1,7 +1,10 @@
 package com.petsalud.backendpetsalud.controller;
 
+import com.petsalud.backendpetsalud.dto.cita.CitaRequest;
+import com.petsalud.backendpetsalud.dto.cita.CitaResponse;
 import com.petsalud.backendpetsalud.entity.Cita;
 import com.petsalud.backendpetsalud.service.CitaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,27 +19,28 @@ public class CitaController {
     private CitaService citaService;
 
     @PostMapping
-    public ResponseEntity<Cita> agendarCita(
-            @RequestParam Long mascotaId,
-            @RequestParam Long veterinarioId,
-            @RequestParam String fechaHora, // Formato ISO 8601
-            @RequestParam String motivo) {
-        LocalDateTime fechaHoraParsed = LocalDateTime.parse(fechaHora);
-        Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo);
-        return ResponseEntity.ok(nuevaCita);
+    public ResponseEntity<CitaResponse> agendarCita(@Valid @RequestBody CitaRequest request) {
+        Cita nuevaCita = citaService.agendarCita(
+                request.mascotaId(),
+                request.veterinarioId(),
+                request.fechaHora(),
+                request.motivo()
+        );
+        return ResponseEntity.ok(CitaResponse.from(nuevaCita));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cita> obtenerCitaPorId(@PathVariable Long id) {
+    public ResponseEntity<CitaResponse> obtenerCitaPorId(@PathVariable Long id) {
         return citaService.obtenerCitaPorId(id)
+                .map(CitaResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Cita> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
+    public ResponseEntity<CitaResponse> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
         Cita citaActualizada = citaService.actualizarEstadoCita(id, estado);
-        return ResponseEntity.ok(citaActualizada);
+        return ResponseEntity.ok(CitaResponse.from(citaActualizada));
     }
 
     @DeleteMapping("/{id}")
@@ -46,24 +50,30 @@ public class CitaController {
     }
 
     @GetMapping("/mascota/{mascotaId}")
-    public ResponseEntity<List<Cita>> listarCitasPorMascota(@PathVariable Long mascotaId) {
-        List<Cita> citas = citaService.listarCitasPorMascota(mascotaId);
+    public ResponseEntity<List<CitaResponse>> listarCitasPorMascota(@PathVariable Long mascotaId) {
+        List<CitaResponse> citas = citaService.listarCitasPorMascota(mascotaId).stream()
+                .map(CitaResponse::from)
+                .toList();
         return ResponseEntity.ok(citas);
     }
 
     @GetMapping("/veterinario/{veterinarioId}")
-    public ResponseEntity<List<Cita>> listarCitasPorVeterinario(@PathVariable Long veterinarioId) {
-        List<Cita> citas = citaService.listarCitasPorVeterinario(veterinarioId);
+    public ResponseEntity<List<CitaResponse>> listarCitasPorVeterinario(@PathVariable Long veterinarioId) {
+        List<CitaResponse> citas = citaService.listarCitasPorVeterinario(veterinarioId).stream()
+                .map(CitaResponse::from)
+                .toList();
         return ResponseEntity.ok(citas);
     }
 
     @GetMapping("/entre-fechas")
-    public ResponseEntity<List<Cita>> listarCitasEntreFechas(
+    public ResponseEntity<List<CitaResponse>> listarCitasEntreFechas(
             @RequestParam String inicio,
             @RequestParam String fin) {
         LocalDateTime inicioParsed = LocalDateTime.parse(inicio);
         LocalDateTime finParsed = LocalDateTime.parse(fin);
-        List<Cita> citas = citaService.listarCitasEntreFechas(inicioParsed, finParsed);
+        List<CitaResponse> citas = citaService.listarCitasEntreFechas(inicioParsed, finParsed).stream()
+                .map(CitaResponse::from)
+                .toList();
         return ResponseEntity.ok(citas);
     }
 }

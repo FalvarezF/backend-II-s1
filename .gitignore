@@ -36,3 +36,7 @@ build/
 #Variables de entorno con credenciales locales 
 .env
 .env.local
+
+
+
+API.md

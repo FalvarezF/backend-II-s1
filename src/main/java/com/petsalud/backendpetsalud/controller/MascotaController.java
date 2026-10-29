@@ -1,7 +1,10 @@
 package com.petsalud.backendpetsalud.controller;
 
+import com.petsalud.backendpetsalud.dto.mascota.MascotaRequest;
+import com.petsalud.backendpetsalud.dto.mascota.MascotaResponse;
 import com.petsalud.backendpetsalud.entity.Mascota;
 import com.petsalud.backendpetsalud.service.MascotaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,22 +18,39 @@ public class MascotaController {
     private MascotaService mascotaService;
 
     @PostMapping("/propietario/{propietarioId}")
-    public ResponseEntity<Mascota> registrarMascota(@PathVariable Long propietarioId, @RequestBody Mascota mascota) {
-        Mascota nuevaMascota = mascotaService.registrarMascota(mascota, propietarioId);
-        return ResponseEntity.ok(nuevaMascota);
+    public ResponseEntity<MascotaResponse> registrarMascota(
+            @PathVariable Long propietarioId,
+            @Valid @RequestBody MascotaRequest request) {
+        Mascota mascota = Mascota.builder()
+                .nombre(request.nombre())
+                .especie(request.especie())
+                .raza(request.raza())
+                .fechaNacimiento(request.fechaNacimiento())
+                .sexo(request.sexo())
+                .build();
+        return ResponseEntity.ok(MascotaResponse.from(mascotaService.registrarMascota(mascota, propietarioId)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Mascota> obtenerMascotaPorId(@PathVariable Long id) {
+    public ResponseEntity<MascotaResponse> obtenerMascotaPorId(@PathVariable Long id) {
         return mascotaService.obtenerMascotaPorId(id)
+                .map(MascotaResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mascota> actualizarMascota(@PathVariable Long id, @RequestBody Mascota mascota) {
-        Mascota mascotaActualizada = mascotaService.actualizarMascota(id, mascota);
-        return ResponseEntity.ok(mascotaActualizada);
+    public ResponseEntity<MascotaResponse> actualizarMascota(
+            @PathVariable Long id,
+            @Valid @RequestBody MascotaRequest request) {
+        Mascota mascota = Mascota.builder()
+                .nombre(request.nombre())
+                .especie(request.especie())
+                .raza(request.raza())
+                .fechaNacimiento(request.fechaNacimiento())
+                .sexo(request.sexo())
+                .build();
+        return ResponseEntity.ok(MascotaResponse.from(mascotaService.actualizarMascota(id, mascota)));
     }
 
     @DeleteMapping("/{id}")
@@ -40,8 +60,10 @@ public class MascotaController {
     }
 
     @GetMapping("/propietario/{propietarioId}")
-    public ResponseEntity<List<Mascota>> listarMascotasPorPropietario(@PathVariable Long propietarioId) {
-        List<Mascota> mascotas = mascotaService.listarMascotasPorPropietario(propietarioId);
+    public ResponseEntity<List<MascotaResponse>> listarMascotasPorPropietario(@PathVariable Long propietarioId) {
+        List<MascotaResponse> mascotas = mascotaService.listarMascotasPorPropietario(propietarioId).stream()
+                .map(MascotaResponse::from)
+                .toList();
         return ResponseEntity.ok(mascotas);
     }
 }

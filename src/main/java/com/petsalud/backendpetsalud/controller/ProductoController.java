@@ -1,7 +1,10 @@
 package com.petsalud.backendpetsalud.controller;
 
+import com.petsalud.backendpetsalud.dto.producto.ProductoRequest;
+import com.petsalud.backendpetsalud.dto.producto.ProductoResponse;
 import com.petsalud.backendpetsalud.entity.Producto;
 import com.petsalud.backendpetsalud.service.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,22 +18,26 @@ public class ProductoController {
     private ProductoService productoService;
 
     @PostMapping
-    public ResponseEntity<Producto> agregarProducto(@RequestBody Producto producto) {
-        Producto nuevoProducto = productoService.agregarProducto(producto);
-        return ResponseEntity.ok(nuevoProducto);
+    public ResponseEntity<ProductoResponse> agregarProducto(@Valid @RequestBody ProductoRequest request) {
+        Producto producto = toEntity(request);
+        return ResponseEntity.ok(ProductoResponse.from(productoService.agregarProducto(producto)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> obtenerProductoPorId(@PathVariable Long id) {
+    public ResponseEntity<ProductoResponse> obtenerProductoPorId(@PathVariable Long id) {
         return productoService.obtenerProductoPorId(id)
+                .map(ProductoResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
-        Producto productoActualizado = productoService.actualizarProducto(id, producto);
-        return ResponseEntity.ok(productoActualizado);
+    public ResponseEntity<ProductoResponse> actualizarProducto(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductoRequest request) {
+        return ResponseEntity.ok(ProductoResponse.from(
+                productoService.actualizarProducto(id, toEntity(request))
+        ));
     }
 
     @DeleteMapping("/{id}")
@@ -40,20 +47,36 @@ public class ProductoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Producto>> listarProductos() {
-        List<Producto> productos = productoService.listarProductos();
+    public ResponseEntity<List<ProductoResponse>> listarProductos() {
+        List<ProductoResponse> productos = productoService.listarProductos().stream()
+                .map(ProductoResponse::from)
+                .toList();
         return ResponseEntity.ok(productos);
     }
 
     @GetMapping("/categoria")
-    public ResponseEntity<List<Producto>> listarProductosPorCategoria(@RequestParam String categoria) {
-        List<Producto> productos = productoService.listarProductosPorCategoria(categoria);
+    public ResponseEntity<List<ProductoResponse>> listarProductosPorCategoria(@RequestParam String categoria) {
+        List<ProductoResponse> productos = productoService.listarProductosPorCategoria(categoria).stream()
+                .map(ProductoResponse::from)
+                .toList();
         return ResponseEntity.ok(productos);
     }
 
     @GetMapping("/stock-bajo")
-    public ResponseEntity<List<Producto>> listarProductosConStockBajo(@RequestParam Integer cantidad) {
-        List<Producto> productos = productoService.listarProductosConStockBajo(cantidad);
+    public ResponseEntity<List<ProductoResponse>> listarProductosConStockBajo(@RequestParam Integer cantidad) {
+        List<ProductoResponse> productos = productoService.listarProductosConStockBajo(cantidad).stream()
+                .map(ProductoResponse::from)
+                .toList();
         return ResponseEntity.ok(productos);
+    }
+
+    private Producto toEntity(ProductoRequest request) {
+        return Producto.builder()
+                .nombre(request.nombre())
+                .descripcion(request.descripcion())
+                .precio(request.precio())
+                .stock(request.stock())
+                .categoria(request.categoria())
+                .build();
     }
 }
