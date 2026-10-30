@@ -1,4 +1,4 @@
-@Configuration
+/*@Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class AuthConfigSecurity {
@@ -25,4 +25,4 @@ public class AuthConfigSecurity {
 
     }
 
-}
+}*/
