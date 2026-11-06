@@ -7,7 +7,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -22,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class JwtService {
 
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.secret}")
     private String secretKey;
 
     @Value("${jwt.expiration}")
