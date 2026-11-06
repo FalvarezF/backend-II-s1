@@ -1,6 +1,6 @@
-package com.petsalud.backendpetsalud.security;
+package com.petsalud.backendpetsalud.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.petsalud.backendpetsalud.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,32 +11,41 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private UsuarioDetailsService usuarioDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    //injeccion por constructor 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers("/api/usuarios/registro", "/api/login").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/veterinario/**").hasAnyAuthority("VETERINARIO", "ADMIN")
+                        
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/veterinario/**").hasAnyRole("VETERINARIO", "ADMIN")
+                   
                         .anyRequest().authenticated()
                 )
-                .userDetailsService(usuarioDetailsService)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(formLogin -> formLogin.disable());
+                    )
 
-        return http.build();
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(formLogin -> formLogin.disable())
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                return http.build();
     }
 
     @Bean
@@ -44,7 +53,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Necesario para la autenticación en AuthController
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();

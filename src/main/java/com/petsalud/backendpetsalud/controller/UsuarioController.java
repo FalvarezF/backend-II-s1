@@ -1,6 +1,6 @@
 package com.petsalud.backendpetsalud.controller;
 
-import com.petsalud.backendpetsalud.dto.security.UsuarioRegistroRequest;
+import com.petsalud.backendpetsalud.dto.RegisterRequest;
 import com.petsalud.backendpetsalud.dto.usuario.UsuarioResponse;
 import com.petsalud.backendpetsalud.dto.usuario.UsuarioUpdateRequest;
 import com.petsalud.backendpetsalud.entity.Rol;
@@ -21,14 +21,14 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @PostMapping("/registro")
-    public ResponseEntity<UsuarioResponse> registrarUsuario(@Valid @RequestBody UsuarioRegistroRequest request) {
+    public ResponseEntity<UsuarioResponse> registrarUsuario(@Valid @RequestBody RegisterRequest request) {
         Usuario usuario = Usuario.builder()
-                .email(request.email())
-                .password(request.password())
-                .nombre(request.nombre())
-                .apellido(request.apellido())
-                .telefono(request.telefono())
-                .direccion(request.direccion())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .nombre(request.getNombre())
+                .apellido(request.getApellido())
+                .telefono(request.getTelefono())
+                .direccion(request.getDireccion())
                 .rol(Rol.CLIENTE)
                 .build();
         return ResponseEntity.ok(UsuarioResponse.from(usuarioService.registrarUsuario(usuario)));
